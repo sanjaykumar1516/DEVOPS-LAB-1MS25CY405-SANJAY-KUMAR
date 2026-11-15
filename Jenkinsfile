@@ -8,22 +8,24 @@ pipeline {
 
     environment {
         VENV = 'ci-venv'
-        PYTHONPATH = "${WORKSPACE}/src"
     }
 
+    // Check GitHub for changes approximately every 2 minutes
     triggers {
         pollSCM('H/2 * * * *')
     }
 
     stages {
 
+        // Stage 1: Download source code from GitHub
         stage('Checkout') {
             steps {
                 checkout scm
-                echo 'Source code checked out successfully.'
+                echo 'Source code downloaded successfully.'
             }
         }
 
+        // Stage 2: Create Python environment and install dependencies
         stage('Install Dependencies') {
             steps {
                 sh '''
@@ -33,11 +35,16 @@ pipeline {
 
                     ${VENV}/bin/python -m pip install \
                         -r requirements.txt \
-                        pytest httpx build setuptools wheel
+                        pytest \
+                        httpx \
+                        build \
+                        setuptools \
+                        wheel
                 '''
             }
         }
 
+        // Stage 3: Run automated tests
         stage('Automated Tests') {
             steps {
                 sh '''
@@ -48,6 +55,7 @@ pipeline {
             }
         }
 
+        // Stage 4: Build Python wheel and source distribution
         stage('Build') {
             steps {
                 sh '''
@@ -56,27 +64,31 @@ pipeline {
 
                     ${VENV}/bin/python -m build --no-isolation
 
-                    echo "Build files created:"
+                    echo "Build files created successfully:"
                     ls -lh dist/
                 '''
             }
         }
 
+        // Stage 5: Archive generated artifacts in Jenkins
         stage('Archive Artifact') {
             steps {
                 archiveArtifacts artifacts: 'dist/*',
                                  fingerprint: true
+
+                echo 'Python build artifacts archived successfully.'
             }
         }
     }
 
+    // Display final pipeline status
     post {
         success {
             echo 'SUCCESS: Tests passed, build completed and artifacts archived.'
         }
 
         failure {
-            echo 'FAILURE: Check Console Output for errors.'
+            echo 'FAILURE: Check Jenkins Console Output for errors.'
         }
 
         always {
