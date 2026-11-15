@@ -1,0 +1,5 @@
+---
+app_name: security-api
+app_user: securityapi
+app_directory: /opt/security-api
+app_port: 8001

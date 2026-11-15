@@ -1,0 +1,15 @@
+[Unit]
+Description=Security Log Monitoring API
+After=network.target
+
+[Service]
+Type=simple
+User={{ app_user }}
+Group={{ app_user }}
+WorkingDirectory={{ app_directory }}
+ExecStart={{ app_directory }}/venv/bin/python -m uvicorn security_log_api.main:app --host 127.0.0.1 --port {{ app_port }}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,80 @@
+- name: Install required Python packages
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-venv
+      - python3-pip
+    state: present
+    update_cache: false
+
+- name: Create dedicated application user
+  ansible.builtin.user:
+    name: "{{ app_user }}"
+    system: true
+    create_home: false
+    shell: /usr/sbin/nologin
+
+- name: Create application directory
+  ansible.builtin.file:
+    path: "{{ app_directory }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0755"
+
+- name: Create application virtual environment
+  ansible.builtin.command:
+    cmd: "python3 -m venv --system-site-packages {{ app_directory }}/venv"
+    creates: "{{ app_directory }}/venv/bin/python"
+
+- name: Find the built application wheel
+  ansible.builtin.set_fact:
+    wheel_files: "{{ query('ansible.builtin.fileglob', playbook_dir + '/../dist/*.whl') }}"
+
+- name: Ensure application wheel exists
+  ansible.builtin.assert:
+    that:
+      - wheel_files | length > 0
+    fail_msg: "No wheel found in the project's dist directory. Run python -m build first."
+
+- name: Select application wheel
+  ansible.builtin.set_fact:
+    wheel_file: "{{ wheel_files | sort | last }}"
+
+- name: Copy application wheel
+  ansible.builtin.copy:
+    src: "{{ wheel_file }}"
+    dest: "{{ app_directory }}/{{ wheel_file | basename }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0644"
+  register: wheel_copy
+
+- name: Install application wheel
+  ansible.builtin.command:
+    argv:
+      - "{{ app_directory }}/venv/bin/pip"
+      - install
+      - --no-index
+      - --no-deps
+      - --force-reinstall
+      - "{{ app_directory }}/{{ wheel_file | basename }}"
+  notify: Restart Security API
+
+- name: Configure systemd service
+  ansible.builtin.template:
+    src: security-api.service.j2
+    dest: /etc/systemd/system/security-api.service
+    mode: "0644"
+  notify: Restart Security API
+
+- name: Enable and start Security API
+  ansible.builtin.systemd_service:
+    name: security-api
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Execute pending handlers
+  ansible.builtin.meta: flush_handlers
+

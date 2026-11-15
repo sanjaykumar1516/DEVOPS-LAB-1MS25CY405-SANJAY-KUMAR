@@ -5,3 +5,11 @@ dist/
 build/
 *.egg-info/
 .env
+
+.venv/
+ci-venv/
+*.pyc
+
+.venv/
+ci-venv/
+*.pyc

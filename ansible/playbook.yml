@@ -1,0 +1,7 @@
+---
+- name: Deploy Security Log Monitoring API
+  hosts: security_servers
+  become: true
+
+  roles:
+    - security_api
