@@ -10,22 +10,15 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                    python3 -m venv ci-venv
-                    . ci-venv/bin/activate
-
-                    python -m pip install --upgrade pip
-
-                    python -m pip install \
-                        -i https://mirrors.aliyun.com/pypi/simple/ \
-                        -r requirements.txt
-
-                    python -m pip install \
-                        -i https://mirrors.aliyun.com/pypi/simple/ \
-                        pytest httpx build
-                '''
+     stage('Install Dependencies') {
+    steps {
+        sh '''
+            python3 -m venv ci-venv
+            ci-venv/bin/python -m pip install --upgrade pip
+            ci-venv/bin/python -m pip install -r requirements.txt pytest httpx build
+        '''
+    }
+}
             }
         }
 
