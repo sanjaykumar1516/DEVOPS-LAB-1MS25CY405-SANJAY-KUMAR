@@ -1,6 +1,8 @@
 pipeline {
     agent any
-
+environment {
+        OPENSSL_CONF = '/etc/ssl/openssl-nopq.cnf'
+    }
     stages {
         stage('Checkout') {
             steps {
