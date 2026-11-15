@@ -3,6 +3,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -14,8 +15,16 @@ pipeline {
                 sh '''
                     python3 -m venv ci-venv
                     . ci-venv/bin/activate
-                    pip install -r requirements.txt
-                    pip install pytest httpx build
+
+                    python -m pip install --upgrade pip
+
+                    python -m pip install \
+                        -i https://mirrors.aliyun.com/pypi/simple/ \
+                        -r requirements.txt
+
+                    python -m pip install \
+                        -i https://mirrors.aliyun.com/pypi/simple/ \
+                        pytest httpx build
                 '''
             }
         }
@@ -24,7 +33,7 @@ pipeline {
             steps {
                 sh '''
                     . ci-venv/bin/activate
-                    PYTHONPATH=src pytest -v
+                    python -m pytest -v
                 '''
             }
         }
@@ -45,5 +54,18 @@ pipeline {
             }
         }
     }
-}
 
+    post {
+        success {
+            echo 'SUCCESS: Jenkins CI Pipeline completed!'
+        }
+
+        failure {
+            echo 'FAILURE: Check Console Output for errors.'
+        }
+
+        always {
+            echo 'Jenkins Pipeline execution finished.'
+        }
+    }
+}
