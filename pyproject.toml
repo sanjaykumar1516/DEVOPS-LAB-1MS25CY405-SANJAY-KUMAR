@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "security-log-api"
+version = "1.0.0"
+description = "Security Log Monitoring and Threat Detection API"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
