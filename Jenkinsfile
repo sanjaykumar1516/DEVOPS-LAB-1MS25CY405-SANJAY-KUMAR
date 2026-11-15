@@ -1,7 +1,10 @@
 
-
 pipeline {
     agent any
+
+    options {
+        skipDefaultCheckout(true)
+    }
 
     environment {
         VENV = 'ci-venv'
@@ -28,7 +31,9 @@ pipeline {
 
                     ${VENV}/bin/python -m pip install --upgrade pip
 
-                    ${VENV}/bin/python -m pip install -r requirements.txt pytest httpx build
+                    ${VENV}/bin/python -m pip install \
+                        -r requirements.txt \
+                        pytest httpx build setuptools wheel
                 '''
             }
         }
@@ -46,7 +51,13 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''
-                    ${VENV}/bin/python -m build
+                    rm -rf dist
+                    mkdir -p dist
+
+                    ${VENV}/bin/python -m build --no-isolation
+
+                    echo "Build files created:"
+                    ls -lh dist/
                 '''
             }
         }
@@ -73,3 +84,4 @@ pipeline {
         }
     }
 }
+
