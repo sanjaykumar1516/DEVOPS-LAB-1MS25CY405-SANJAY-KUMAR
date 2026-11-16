@@ -1,0 +1,47 @@
+
+name: Security Log API - CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build and Test FastAPI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout GitHub Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install pytest httpx build
+
+      - name: Run Automated Tests
+        run: |
+          python -m pytest -v
+
+      - name: Build Python Package
+        run: |
+          python -m build
+          ls -lh dist/
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-log-api-package
+          path: dist/
+          if-no-files-found: error
