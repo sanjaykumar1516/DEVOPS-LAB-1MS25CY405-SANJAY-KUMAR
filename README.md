@@ -27,6 +27,11 @@ Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
+## CI/CD Workflow
+
+This project uses GitHub Actions and Jenkins for
+automated testing and Python package generation.
+The FastAPI application is tested using pytest.
 
 Start the API:
 
